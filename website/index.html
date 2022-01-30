@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang=en>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.5.3/dist/ethers.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@metamask/detect-provider@1.2.0/dist/detect-provider.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.8.1/dist/cdn.min.js" defer></script>
+
+<script>
+	window.abi = {
+		'IERC20': [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					}
+				],
+				"name": "Approval",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					}
+				],
+				"name": "Transfer",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					}
+				],
+				"name": "allowance",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "spender",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "approve",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "balanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "totalSupply",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "transfer",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "transferFrom",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		BankERC20: [
+			{
+				"inputs": [
+					{
+						"internalType": "contract IERC20",
+						"name": "_token",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "Deposit",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "Withdraw",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "balance",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "deposit",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "token",
+				"outputs": [
+					{
+						"internalType": "contract IERC20",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		]
+	}
+</script>
+
+<div x-data="{
+	isConnected: false,
+	ethereum: null,
+	account: '',
+	bankAddress: '0x3E9f75F15A277ff0ea8c2DFdbfCc122ed16e669A',
+	tokenAddress: '0xa9bcB45E794C7dEb3D2D18eb83EC5f060c835BE4',
+	amount: '',
+	balance: ethers.BigNumber.from(0),
+	depositedBalance: ethers.BigNumber.from(0),
+	isApproved: false,
+	async init () {
+		this.ethereum = await detectEthereumProvider()
+		window.provider = new ethers.providers.Web3Provider(this.ethereum)
+		// window.provider = new ethers.providers.JsonRpcProvider('https://rei-testnet-rpc.moonrhythm.io')
+
+		const detectAccount = async () => {
+			// await ethereum.request({ method: 'eth_chainId' }) // => hex 0x00
+			// await ethereum.request({
+			//	method: 'wallet_switchEthereumChain',
+			//	params: [{ chainId: '0xd904' }]
+			// })
+			// catch (err) { err.code === 4902 }
+			// await ethereum.request({
+			//	method: 'wallet_addEthereumChain',
+			//	params: [{
+			//		chainId: '0xd904',
+			//		chainName: 'Rei Testnet',
+			//		nativeCurrency: 'tREI',
+			//		rpcUrls: [ 'https://rei-testnet-rpc.moonrhythm.io' ],
+			//		blockExplorerUrls: [ 'https://testnet.reiscan.com' ]
+			//	}]
+			// })
+			const accounts = await ethereum.request({ method: 'eth_accounts' })
+			if (accounts.length === 0) {
+				this.isConnected = false
+				return
+			}
+			this.account = accounts[0]
+			this.isConnected = true
+
+			this.reloadApprove()
+			this.reloadBalance()
+			this.reloadDepositedBalance()
+		}
+		detectAccount()
+
+		this.ethereum.on('accountsChanged', async () => {
+			detectAccount()
+		})
+	},
+	async connect () {
+		await this.ethereum.request({ method: 'eth_requestAccounts' })
+	},
+	async reloadApprove () {
+		const c = new ethers.Contract(this.tokenAddress, abi.IERC20, window.provider)
+		const allowance = await c.allowance(this.account, this.bankAddress)
+		this.isApproved = !allowance.isZero()
+	},
+	async approve () {
+		const c = new ethers.Contract(this.tokenAddress, abi.IERC20, window.provider)
+		const tx = await c.connect(this.getSigner()).approve(this.bankAddress, ethers.constants.MaxUint256)
+		await tx.wait()
+
+		this.reloadApprove()
+	},
+	async reloadBalance () {
+		const c = new ethers.Contract(this.tokenAddress, abi.IERC20, window.provider)
+		this.balance = await c.balanceOf(this.account)
+	},
+	async reloadDepositedBalance () {
+		const c = new ethers.Contract(this.bankAddress, abi.BankERC20, window.provider)
+		this.depositedBalance = await c.balance(this.account)
+	},
+	getSigner () {
+		return window.provider.getSigner()
+		// return (new ethers.providers.Web3Provider(this.ethereum)).getSigner()
+	},
+	async deposit () {
+		const c = new ethers.Contract(this.bankAddress, abi.BankERC20, window.provider)
+		const amount = ethers.utils.parseEther(this.amount)
+		// const amount = ethers.utils.parseUnits(this.amount, 18)
+		const tx = await c.connect(this.getSigner()).deposit(amount)
+		await tx.wait()
+
+		this.reloadBalance()
+		this.reloadDepositedBalance()
+	},
+	async withdraw () {
+		const c = new ethers.Contract(this.bankAddress, abi.BankERC20, window.provider)
+		const amount = ethers.utils.parseEther(this.amount)
+		const tx = await c.connect(this.getSigner()).withdraw(amount)
+		await tx.wait()
+
+		this.reloadBalance()
+		this.reloadDepositedBalance()
+	}
+}">
+
+	<button x-show="!isConnected" @click=connect>Connect</button>
+
+	<div x-show=isConnected>
+		<p>Account: <span x-text=account></span></p>
+
+		<p>Balance: <span x-text="ethers.utils.formatEther(balance)"></span></p>
+		<input x-model=amount>
+
+		<button @click=approve x-show="!isApproved">Approve</button>
+		<button @click=deposit x-show="isApproved">Deposit</button>
+		<button @click=withdraw>Withdraw</button>
+
+		<p>Deposited Balance: <span x-text="ethers.utils.formatEther(depositedBalance)"></span></p>
+	</div>
+</div>
